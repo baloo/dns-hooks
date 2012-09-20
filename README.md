@@ -9,7 +9,7 @@ Checks zone sanity before deploying updates to production
 - Zones compiles with zonec
 - SOA serial has been incremented
 
-# Deployment
+## Deployment
 
 - Rebuild nsd db
 - Reload nsd
