@@ -1,0 +1,34 @@
+#!/bin/sh
+
+BRANCH=$1
+OLDCOMMIT=$2
+NEWCOMMIT=$3
+
+mustfail=0
+
+
+CHANGED_FILES=$(git diff --name-only $OLDCOMMIT $NEWCOMMIT)
+
+for file in $CHANGED_FILES; do
+  
+  zonename=`echo $(basename $file)| sed 's/.db//' | sed 's/^forward.//'`
+  if [ "$zonename" = "" ]; then
+    echo "$file cannot be parsed"
+    mustfail=1
+    continue
+  fi
+
+
+  rm -f /tmp/zonec_check
+
+  git show $NEWCOMMIT:$file >> /tmp/zonec_check
+
+  cat /tmp/zonec_check | /usr/sbin/zonec -C -o $zonename -z -
+  if [ $? -ne 0 ]; then
+    mustfail=1
+    echo "$zonename does not compile with zonec" >&2
+
+  fi
+done
+
+exit $mustfail

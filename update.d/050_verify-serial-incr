@@ -1,0 +1,25 @@
+#!/bin/sh
+
+BRANCH=$1
+OLDCOMMIT=$2
+NEWCOMMIT=$3
+
+CHANGED_FILES=$(git diff --diff-filter=M --name-only $OLDCOMMIT $NEWCOMMIT)
+
+mustfail=0
+for file in $CHANGED_FILES; do
+
+  ZONENAME=$(echo $(basename $file)| sed 's/.db//' | sed 's/^forward.//')
+
+  OLDSERIAL=$(git show $OLDCOMMIT:$file | named-checkzone $ZONENAME /dev/stdin| grep "IN: loaded serial" | cut -d " " -f 5)
+  NEWSERIAL=$(git show $NEWCOMMIT:$file | named-checkzone $ZONENAME /dev/stdin| grep "IN: loaded serial" | cut -d " " -f 5)
+
+  if [ $NEWSERIAL -le $OLDSERIAL ]; then
+    echo ""
+    echo "SERIAL in $file has not been updated"
+    echo " Before: $OLDSERIAL, After: $NEWSERIAL"
+    mustfail=1
+  fi
+done
+
+exit $mustfail

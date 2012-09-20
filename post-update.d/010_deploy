@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cd /var/lib/nsd3
+
+exec env -i git pull
+
+
